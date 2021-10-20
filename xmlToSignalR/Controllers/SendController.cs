@@ -40,14 +40,14 @@ namespace xmlToSignalR.Controllers
             {
                 Id = Guid.NewGuid(),
                 Name = "Model",
-                Created = new()
+                Created = new Created
                 {
                     Creator = "System",
-                    Date = new DateTime()
+                    Date = DateTime.UtcNow
                 }
             };
-            
-            var stringWriter = new StringWriter();
+
+            await using var stringWriter = new StringWriter();
             var serializer = new XmlSerializer(typeof(SomeModel));
             serializer.Serialize(stringWriter, model);
             var message = stringWriter.ToString();

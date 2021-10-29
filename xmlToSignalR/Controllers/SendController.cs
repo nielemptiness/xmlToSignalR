@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 using System.Xml.Serialization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
@@ -46,13 +48,29 @@ namespace xmlToSignalR.Controllers
                     Date = DateTime.UtcNow
                 }
             };
-
+            
+            var xmlSettings = new XmlWriterSettings
+            {
+                Indent = true,
+                OmitXmlDeclaration = false,
+                CheckCharacters = true,
+                Encoding = Encoding.UTF8,
+                Async = true
+            };
+            
             await using var stringWriter = new StringWriter();
-            var serializer = new XmlSerializer(typeof(SomeModel));
-            serializer.Serialize(stringWriter, model);
-            var message = stringWriter.ToString();
-            await _hub.Clients.All.SendXml(message);
-
+            {
+                await using var writer = XmlWriter.Create(stringWriter, xmlSettings);
+                {
+                    var serializer = new XmlSerializer(typeof(SomeModel));
+                    
+                    serializer.Serialize(writer, model);
+                    
+                    var message = stringWriter.ToString();
+                    await _hub.Clients.All.SendXml(message);   
+                }
+            }
+            
             return NoContent();
         }
     }
